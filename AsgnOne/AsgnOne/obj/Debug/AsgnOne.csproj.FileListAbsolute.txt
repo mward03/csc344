@@ -1,0 +1,11 @@
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\bin\Debug\AsgnOne.exe.config
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\obj\Debug\AsgnOne.Properties.Resources.resources
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\obj\Debug\AsgnOne.csproj.GenerateResource.Cache
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\bin\Debug\AsgnOne.exe
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\bin\Debug\AsgnOne.pdb
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\bin\Debug\NAudio.dll
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\bin\Debug\NAudio.xml
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\obj\Debug\AsgnOne.Form1.resources
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\obj\Debug\AsgnOne.exe
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\obj\Debug\AsgnOne.pdb
+\\psf\Home\Dropbox\Classes\344\AsgnOne\AsgnOne\obj\Debug\AsgnOne.csprojResolveAssemblyReference.cache
