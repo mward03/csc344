@@ -13,9 +13,10 @@ public class Parser {
     public static final int NOTE_OFF = 0x80;
     public static final String[] NOTE_NAMES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-    public static DistributionInfo run(File midi) throws Exception {
+    public static DistributionInfo run(File midi, DistributionInfo di) throws Exception {
+    	di.print(true, true);
+    	
         Sequence sequence = MidiSystem.getSequence(midi);
-        DistributionInfo di = new DistributionInfo();
         long time;
         int temp;
         int total = 0;

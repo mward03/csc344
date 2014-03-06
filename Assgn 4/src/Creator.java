@@ -13,7 +13,7 @@ import javax.sound.midi.Track;
 
 
 public class Creator {
-	public static MidiRep createMidi(DistributionInfo di) {
+	public static MidiRep createMidi(DistributionInfo di, float tempo, int numberOfNotes) {
 		boolean derivative = false;
 		if (di != null) derivative = true;
 		
@@ -34,7 +34,8 @@ public class Creator {
 
 	//****  set tempo (meta event)  ****
 			MetaMessage mt = new MetaMessage();
-	        byte[] bt = {0x02, (byte)0x00, 0x00};
+			
+			byte[] bt = {(byte) (0x00 + tempo), (byte)0xA1, 0x20};
 			mt.setMessage(0x51 ,bt, 3);
 			me = new MidiEvent(mt,(long)0);
 			t.add(me);
@@ -66,7 +67,7 @@ public class Creator {
 			t.add(me);
 			
 			Random rand = new Random();
-			int n = 20;
+			int n = numberOfNotes;
 			ArrayList<Integer> noteList = new ArrayList<Integer>();
 			if (derivative) {
 				noteList.add(di.getInitialKey());
@@ -83,6 +84,7 @@ public class Creator {
 			
 			Iterator<Integer> itr = noteList.iterator();
 			int i = 0;
+			int delay = 10;
 			while(itr.hasNext())
             {
                 int note = itr.next();
@@ -110,10 +112,15 @@ public class Creator {
 ////                //Handle
 ////            }
                 
+                if (rand.nextInt(5) == 2)
+                	delay = 0;
+                
                 t.add(new MidiEvent(noteOnMsg,i));
-                i = i + 50;
+                i = i + delay;
                 t.add(new MidiEvent(noteOffMsg,i));
-                i = i + 50;
+                i = i + delay;
+                
+                delay = 10;
             }
 
 
