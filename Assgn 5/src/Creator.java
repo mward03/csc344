@@ -13,8 +13,9 @@ import javax.sound.midi.Track;
 
 
 public class Creator {
-	public static MidiRep createMidi(DistributionInfo di, float tempo, int numberOfNotes, int inst) {
+	public static MidiRep createMidi(DistributionInfo di, float tempo, int numberOfNotes, int inst, String outputTrackName) {
 		boolean derivative = false;
+		Random rand = new Random();
 		if (di != null) derivative = true;
 		
 		try
@@ -42,7 +43,7 @@ public class Creator {
 
 	//****  set track name (meta event)  ****
 			mt = new MetaMessage();
-			String TrackName = new String("midiFile");
+			String TrackName = new String(outputTrackName);
 			mt.setMessage(0x03 ,TrackName.getBytes(), TrackName.length());
 			me = new MidiEvent(mt,(long)0);
 			t.add(me);
@@ -60,13 +61,12 @@ public class Creator {
 			t.add(me);
 
 	//****  (change instrument type, channel instrument)  ****
-		
+			
 			mm = new ShortMessage();
-			mm.setMessage(ShortMessage.PROGRAM_CHANGE, 1, 11, 0); 
+			mm.setMessage(ShortMessage.PROGRAM_CHANGE, 0, inst, 0); 
 			me = new MidiEvent(mm,(long)0);
 			t.add(me);
 			
-			Random rand = new Random();
 			int n = numberOfNotes;
 			ArrayList<Integer> noteList = new ArrayList<Integer>();
 			if (derivative) {
@@ -84,7 +84,7 @@ public class Creator {
 			
 			Iterator<Integer> itr = noteList.iterator();
 			int i = 0;
-			int delay = 10;
+			int delay = 8;
 			while(itr.hasNext())
             {
                 int note = itr.next();
@@ -97,22 +97,23 @@ public class Creator {
                 //Signal/Channel/Pitch/Velocity
                 noteOffMsg.setMessage(ShortMessage.NOTE_OFF,0, note, 127);
 
-////			//change instrument of track t
-////			try
-////            {
-////                 ShortMessage instrumentChange = new ShortMessage();
-//// 
-////                 instrumentChange.setMessage(ShortMessage.PROGRAM_CHANGE, 1, 60, 0);
-//// 
-////                 //MidiEvent instrumentChange = new MidiEvent(ShortMessage.PROGRAM_CHANGE,drumPatch.getBank(),drumPatch.getProgram());
-////                 t.add(new MidiEvent(instrumentChange,0));
-////            }
-////            catch(Exception e)
-////            {
-////                //Handle
-////            }
+				//change instrument of track t
+//				try
+//	            {
+//	                 ShortMessage instrumentChange = new ShortMessage();
+//	 
+//	                 int inst = rand.nextInt(128);
+//	                 instrumentChange.setMessage(ShortMessage.PROGRAM_CHANGE, 1, 60, inst);
+//	 
+//	                 //MidiEvent instrumentChange = new MidiEvent(ShortMessage.PROGRAM_CHANGE,drumPatch.getBank(),drumPatch.getProgram());
+//	                 t.add(new MidiEvent(instrumentChange,0));
+//	            }
+//	            catch(Exception e)
+//	            {
+//	                //Handle
+//	            }
                 
-                if (rand.nextInt(5) == 2)
+                if (rand.nextInt(3) == 2)
                 	delay = 0;
                 
                 t.add(new MidiEvent(noteOnMsg,i));
@@ -120,7 +121,7 @@ public class Creator {
                 t.add(new MidiEvent(noteOffMsg,i));
                 i = i + delay;
                 
-                delay = 10;
+                delay = 8;
             }
 
 
@@ -132,7 +133,7 @@ public class Creator {
 			t.add(me);
 
 	//****  write the MIDI sequence to a MIDI file  ****
-			File f = new File("midiFile.mid");
+			File f = new File("midifile.mid");
 			MidiSystem.write(s, 1, f);
 			
 			return new MidiRep(s, f);

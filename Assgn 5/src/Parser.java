@@ -7,24 +7,24 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.Sequence;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.Track;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
 
 public class Parser {
     public static final int NOTE_ON = 0x90;
     public static final int NOTE_OFF = 0x80;
     public static final String[] NOTE_NAMES = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
 
-    public static DistributionInfo run(File midi, DistributionInfo di) throws Exception {
-    	
+    public static DistributionInfo run(File midi, DistributionInfo di, JTextPane outputPanel) throws Exception { 	
         Sequence sequence = MidiSystem.getSequence(midi);
-        long time;
         int temp;
         int total = 0;
         
         int prev = -1;
-        int trackNumber = 0;
+//        int trackNumber = 0;
 
         for (Track track :  sequence.getTracks()) {
-            trackNumber++;
+//            trackNumber++;
 //            System.out.println("Track " + trackNumber + ": size = " + track.size());
 //            System.out.println();
             for (int i=0; i < track.size(); i++) { 
@@ -41,7 +41,6 @@ public class Parser {
                         //System.out.println("Key: " + key + ", note: " + note + " note name: " + noteName + " instrument: ");
 
                         // Generate Sorted list of notes
-                        time = System.currentTimeMillis();
                         temp = contains(di.keyList, key);
                         if (temp != -1) {
                         	di.keyList.get(temp).inc(System.currentTimeMillis());
@@ -89,8 +88,7 @@ public class Parser {
         di.setTotal(total);
         
         //print distribution info (markov, keyList)
-        //di.print(true, true);
-        di.print(true, true);
+    	di.print(true, true, outputPanel);
         
         return di;
     }
