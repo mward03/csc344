@@ -8,6 +8,9 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
 
 import javax.sound.midi.*; // package for all midi classes
 import javax.swing.JFileChooser;
@@ -19,6 +22,7 @@ import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
+import javax.swing.JComboBox;
 
 public class Window {
 
@@ -26,14 +30,11 @@ public class Window {
 	private static ArrayList<String> fileList = new ArrayList<String>();
 	private static MidiRep midiFile = null; 
 	private static DistributionInfo di = new DistributionInfo();
-	private static String fileName = "/Users/matthewward/Documents/344/egb.mid";
 	private static JButton fileChooserBtn;
 	private static JButton playButton;
-	private static JCheckBox parseCheck;
-	private static JCheckBox generateCheck;
+	private static JButton genButton;
 	private static JSlider slider;
 	private static JLabel lblNotesToGenerate;
-	private static boolean playing = false;
 	private static JTextPane selectedPanel;
 	private static JTextField numNotes;
 	private static Sequencer sequencer;
@@ -41,15 +42,13 @@ public class Window {
 	private static JTextField midiNoteBox;
 	private static JScrollPane op;
 	private static JTextPane outputPanel;
-	private static JTextPane playQueuePanel;
+	private static JComboBox comboBox;
+	private static JButton derButton;
 	/**
 	 * Launch the application.
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String defaultPath = "C:\\Users\\Matthew\\SkyDrive\\School\\Classes\\344\\Assgn 5\\egb.mid";
-		fileList.add(defaultPath);
-		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -85,54 +84,62 @@ public class Window {
 		playButton = new JButton("Play");
 		playButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (!playing) {
-					try {
-						if (generateCheck.isSelected()) {
-							  if (parseCheck.isSelected()) {
-								  for (String file : fileList) {
-									  midiFile = openToMidiRep(file);
-									  di = Parser.run(midiFile.getMidiFile(), di, outputPanel);
-								  }
-								  midiFile = Creator.createMidi(di, slider.getValue(), Integer.parseInt(numNotes.getText()), Integer.parseInt(midiNoteBox.getText()), midiNameInput.getText());	
-							  } else {
-								  midiFile = Creator.createMidi(null, slider.getValue(), Integer.parseInt(numNotes.getText()), Integer.parseInt(midiNoteBox.getText()), midiNameInput.getText());
-							  }
-						  } else {
-							  if (parseCheck.isSelected()) {
-								  for (String file : fileList) {
-									  midiFile = openToMidiRep(file);
-									  di = Parser.run(midiFile.getMidiFile(), di, outputPanel);
-								  }
-							  } else {
-								  midiFile = openToMidiRep(fileName);
-							  }
-						  }
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-						
-				    if (midiFile != null)
-					  playPause();
-				}
+				playPause();
 			}
 		});
 		playButton.setBounds(470, 288, 104, 29);
 		frame.getContentPane().add(playButton);
+
+		derButton = new JButton("Derivative Song");
+		derButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	if (fileList.size() <= 0) return;
+            	if (sequencer != null) sequencer.stop();
+            	sequencer = null;
+            	
+				try {
+                    for (String file : fileList) {
+                        midiFile = openToMidiRep(file);
+                    }
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+
+			    if (midiFile != null)
+				  playPause();
+            }
+        });
+		derButton.setBounds(223, 288, 150, 29);
+        frame.getContentPane().add(derButton);
+		
+        genButton = new JButton("Generate");
+        genButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+            	if (fileList.size() <= 0) return;
+            	if (sequencer != null) sequencer.stop();
+            	sequencer = null;
+            	
+                try {
+                    for (String file : fileList) {
+                        midiFile = openToMidiRep(file);
+                        di = Parser.run(midiFile.getMidiFile(), di, outputPanel);
+                    }
+                    midiFile = Creator.createMidi(di, (slider.getMaximum() - slider.getValue()), Integer.parseInt(numNotes.getText()), Integer.parseInt(midiNoteBox.getText()), midiNameInput.getText(), (String)comboBox.getSelectedItem(), outputPanel);
+                } catch (Exception e1) {
+                    e1.printStackTrace();
+                }
+
+                if (midiFile != null)
+                    playPause();
+            }
+        });
+        genButton.setBounds(370, 288, 104, 29);
+        frame.getContentPane().add(genButton);
 		
 		selectedPanel = new JTextPane();
 		selectedPanel.setEditable(false);
-		selectedPanel.setBounds(6, 328, 283, 122);
+		selectedPanel.setBounds(6, 328, 568, 114);
 		frame.getContentPane().add(selectedPanel);
-
-		parseCheck = new JCheckBox("Parse Midi File(s)");
-		parseCheck.setSelected(true);
-		parseCheck.setBounds(6, 6, 150, 23);
-		frame.getContentPane().add(parseCheck);
-
-		generateCheck = new JCheckBox("Generate Midi File");
-		generateCheck.setSelected(true);
-		generateCheck.setBounds(6, 34, 150, 23);
-		frame.getContentPane().add(generateCheck);
 		
 		slider = new JSlider(0x00, 0x10, 0x08);
 		slider.setBounds(52, 248, 522, 29);
@@ -141,7 +148,7 @@ public class Window {
 		numNotes = new JTextField();
 		numNotes.setHorizontalAlignment(SwingConstants.RIGHT);
 		numNotes.setText("200");
-		numNotes.setBounds(470, 62, 71, 20);
+		numNotes.setBounds(229, 62, 132, 20);
 		frame.getContentPane().add(numNotes);
 		numNotes.setColumns(10);
 		
@@ -150,23 +157,23 @@ public class Window {
 		frame.getContentPane().add(lblTempo);
 		
 		lblNotesToGenerate = new JLabel("Number of Notes to Generate");
-		lblNotesToGenerate.setBounds(312, 64, 150, 16);
+		lblNotesToGenerate.setBounds(16, 64, 184, 16);
 		frame.getContentPane().add(lblNotesToGenerate);
 		
 		JLabel lblOutputFilename = new JLabel("Output Filename");
-		lblOutputFilename.setBounds(16, 64, 150, 16);
+		lblOutputFilename.setBounds(16, 6, 150, 16);
 		frame.getContentPane().add(lblOutputFilename);
 		
 		midiNameInput = new JTextField();
 		midiNameInput.setText("midiOuputFile");
-		midiNameInput.setBounds(138, 64, 132, 20);
+		midiNameInput.setBounds(229, 4, 132, 20);
 		frame.getContentPane().add(midiNameInput);
 		midiNameInput.setColumns(10);
 		
 		midiNoteBox = new JTextField();
 		midiNoteBox.setText("90");
 		midiNoteBox.setHorizontalAlignment(SwingConstants.TRAILING);
-		midiNoteBox.setBounds(470, 35, 71, 20);
+		midiNoteBox.setBounds(229, 36, 132, 20);
 		frame.getContentPane().add(midiNoteBox);
 		midiNoteBox.setColumns(10);
 		
@@ -178,13 +185,8 @@ public class Window {
 				
 			}
 		});
-		clearFilesButton.setBounds(132, 288, 104, 29);
+		clearFilesButton.setBounds(122, 288, 104, 29);
 		frame.getContentPane().add(clearFilesButton);
-		
-		playQueuePanel = new JTextPane();
-		playQueuePanel.setEditable(false);
-		playQueuePanel.setBounds(299, 328, 275, 122);
-		frame.getContentPane().add(playQueuePanel);
 		
 		outputPanel = new JTextPane();
 		outputPanel.setBounds(584, 6, 692, 439);
@@ -197,39 +199,67 @@ public class Window {
 		frame.getContentPane().add(op);
 		
 		JLabel lblMidiNote = new JLabel("Midi Note");
-		lblMidiNote.setBounds(312, 37, 150, 16);
+		lblMidiNote.setBounds(16, 37, 150, 16);
 		frame.getContentPane().add(lblMidiNote);
+		
+		comboBox = new JComboBox();
+		comboBox.setBounds(229, 94, 132, 27);
+		frame.getContentPane().add(comboBox);
+		Global temp = new Global();
+		HashMap<String, int[]> hm = temp.getKeys();
+		Set set = hm.keySet();
+		Iterator i = set.iterator();
+		comboBox.addItem("All");
+	     // Display elements
+	     while(i.hasNext()) {
+	       comboBox.addItem(i.next().toString());
+	     }
+	     comboBox.setSelectedItem("All");
+		
+		JLabel lblNewLabel = new JLabel("Key");
+		lblNewLabel.setBounds(16, 98, 61, 16);
+		frame.getContentPane().add(lblNewLabel);
 		
 		fileChooserBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				String fileName = fileChooser();
+				fileChooser();
 				
-				if (!fileList.contains(fileName))
-				  {
-					  fileList.add(fileName);
-				  }
+				if (fileList.size() == 0) selectedPanel.setText("No midi files selected.");
 				
-				selectedPanel.setText(fileList.toString());
+				String ret = "";
+				for (String s : fileList)
+					ret += (s + '\n');
+				selectedPanel.setText(ret);
 			}
 		});
 	}
 	
 	public static void playPause() {
 		  try {
-//		      if (sequencer != MidiSystem.getSequencer()) {
+		  if (sequencer == null && midiFile == null) {
+			  return;
+		  } else if (sequencer == null) {
 				  sequencer = MidiSystem.getSequencer();
 				  sequencer.open();
 		    	  sequencer.setSequence(midiFile.getSequence());
 		    	  sequencer.start();
-//		      } else {
-//		    	  sequencer.stop();
-//		    	  sequencer = null;
-//		      }
+		    	  playButton.setText("Pause");
+		      } else if (sequencer.isRunning()){
+		    	  playButton.setText("Play");
+		    	  sequencer.stop();
+		      } else {
+		    	  playButton.setText("Pause");
+		    	  sequencer.start();
+		      }
 		} catch (MidiUnavailableException e) {
 			  e.printStackTrace();
 		} catch (InvalidMidiDataException e) {
 			  e.printStackTrace();
 		}
+		  
+		fileList.remove(fileList);
+		fileList.add(midiNameInput.getText());
+		selectedPanel.setText(fileList.toString());
 	  }
 
 	  public static MidiRep openToMidiRep(String location) {
@@ -250,13 +280,18 @@ public class Window {
 	  }
 	  
 	  public static String fileChooser() {
-		  JFileChooser chooser = new JFileChooser();
+		    JFileChooser chooser = new JFileChooser();
+		    chooser.setCurrentDirectory(new File("."));
+		    chooser.setMultiSelectionEnabled(true);
 		    FileNameExtensionFilter filter = new FileNameExtensionFilter(
 		        "MID files", "mid");
 		    chooser.setFileFilter(filter);
 		    int returnVal = chooser.showOpenDialog(null);
-		    if(returnVal == JFileChooser.APPROVE_OPTION)
-		       return chooser.getSelectedFile().toString();
+		    if(returnVal == JFileChooser.APPROVE_OPTION) {
+		    	for (File f : chooser.getSelectedFiles())
+		    		if (!fileList.contains(f.toString())) 
+		    			fileList.add(f.toString());
+		    }
 		    return null;
 	  }
 }

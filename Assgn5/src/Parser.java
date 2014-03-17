@@ -17,10 +17,11 @@ public class Parser {
 
     public static DistributionInfo run(File midi, DistributionInfo di, JTextPane outputPanel) throws Exception { 	
         Sequence sequence = MidiSystem.getSequence(midi);
-        int temp;
         int total = 0;
-        
-        int prev = -1;
+        int temp;
+        ArrayList<Key> buffer = new ArrayList<Key>();
+        Key tempKey;
+       
 //        int trackNumber = 0;
 
         for (Track track :  sequence.getTracks()) {
@@ -36,35 +37,42 @@ public class Parser {
 //                    System.out.println("Channel: " + sm.getChannel() + " ");
                     if (sm.getCommand() == NOTE_ON) {
                         int key = sm.getData1();
-//                        int note = key % 12;
-//                        String noteName = NOTE_NAMES[note];
-                        //System.out.println("Key: " + key + ", note: " + note + " note name: " + noteName + " instrument: ");
 
+                        tempKey = new Key(key, System.currentTimeMillis(), sm.getData2());
+                        
                         // Generate Sorted list of notes
                         temp = contains(di.keyList, key);
                         if (temp != -1) {
                         	di.keyList.get(temp).inc(System.currentTimeMillis());
                         } else {
-                        	di.keyList.add(new Key(key, System.currentTimeMillis()));
+                        	di.keyList.add(tempKey);
                         }
                         total++;
                         
-                        //if (total >= 10) break;
                         
+                        int found = 0;
+                        Key used = null;
                         //determine walk
-                        if (prev == -1) {
-                        	prev = key;
-                        } else {
-                        	di.markov[prev][key] += 1;
-                        	prev = key;
+                        for (Key k : buffer) {
+                        	if (k.getInst() == tempKey.getInst()) {
+                        		di.markov[k.getKey()][tempKey.getKey()] += 1;
+                        		used = k;
+                        		found = 1;
+                        		break;
+	                		} 
                         }
+                        if (found == 0) {
+                        	buffer.add(tempKey);
+                        } else {
+                        	buffer.remove(used);
+                        	buffer.add(tempKey);
+                        }
+                        found = 0;
                         
                     }
                 }
             }
-        }
-        
-        updateMarkov(di);
+        }     
         
         //Sort list of notes
         ArrayList<Key> ret = new ArrayList<Key>(di.keyList.size());
@@ -92,19 +100,6 @@ public class Parser {
         
         return di;
     }
-
-    // Turns matrix from number of instances to percentages
-	private static void updateMarkov(DistributionInfo di) {
-		for (int i = 0; i < 128; i++) {
-			int count = 0;
-			for (int j = 0; j < 128; j++) {
-				count += di.markov[i][j];
-			}
-			for (int j = 0; j < 128 && count > 0; j++) {
-				di.markov[i][j] /= count;
-			}
-		}
-	}
 
 	private static int contains(ArrayList<Key> keyList, int key) {
 		int ndx = 0;
